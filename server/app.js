@@ -1,7 +1,8 @@
-const Deck = require('./models/deck');
-
+const Deck = require('./models/deck').default;
 const express = require('express');
+
 const app = express();
+const hostname = 'localhost';
 const port = 3000;
 
 const decks = [];
@@ -26,9 +27,36 @@ app.get('/decks/:id', (req, res) => {
     res.json(deck);
 });
 
-app.listen(port, () => {
+app.put('/decks/:id', express.json(), (req, res) => {
+    var deck = getById(req.params.id);
+
+    if (!deck) {
+        return res.status(404).send('Deck not found');
+    }
+
+    const { name, description = null } = req.body || {};
+    
+    deck.name = name;
+    deck.description = description;
+
+    res.json(deck);
+});
+
+app.delete('/decks/:id', (req, res) => {
+    const index = decks.findIndex(d => d.id == req.params.id);
+
+    if (index === -1) {
+        return res.status(404).send('Deck not found');
+    }
+
+    decks.splice(index, 1);
+    
+    res.status(204).send();
+});
+
+app.listen(port, hostname, () => {
   console.log(`Example app listening on port ${port}`)
-})
+});
 
 function createDeck(deckName, description) {
     let lastId = 0;
